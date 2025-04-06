@@ -3,6 +3,30 @@
 <div class="container py-5">
   <h2 class="mb-4 text-center">Member Directory</h2>
 
+
+  <form method="get" class="row g-2 mb-4">
+  <div class="col-md-4">
+    <input type="text" name="q" class="form-control" placeholder="Search by name or bio" value="{{ search_query }}">
+  </div>
+  <div class="col-md-3">
+    <select name="availability" class="form-select">
+      <option value="">All Availability</option>
+      <option value="full-time" {% if selected_availability == 'full-time' %}selected{% endif %}>Full-time</option>
+      <option value="part-time" {% if selected_availability == 'part-time' %}selected{% endif %}>Part-time</option>
+      <option value="contract" {% if selected_availability == 'contract' %}selected{% endif %}>Contract</option>
+      <option value="freelance" {% if selected_availability == 'freelance' %}selected{% endif %}>Freelance</option>
+    </select>
+  </div>
+  <div class="col-md-3">
+    <input type="text" name="skill" class="form-control" placeholder="Search by skill" value="{{ selected_skill }}">
+  </div>
+  <div class="col-md-2">
+    <button type="submit" class="btn btn-dark w-100">Search</button>
+  </div>
+</form>
+
+  
+
   {% if members %}
     <div class="row g-4">
       {% for member in members %}

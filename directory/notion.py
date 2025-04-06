@@ -1,12 +1,20 @@
 from notion_client import Client
-import os
+from .models import NotionConfig
+#import os
 from dotenv import load_dotenv
 load_dotenv()
 
-notion = Client(auth=os.getenv("NOTION_API_KEY"))
-NOTION_DB_ID = os.getenv("NOTION_DB_ID")
+# notion = Client(auth=os.getenv("NOTION_API_KEY"))
+# NOTION_DB_ID = os.getenv("NOTION_DB_ID")
+
+def get_notion_client():
+    config = NotionConfig.objects.first()
+    if not config:
+        raise Exception("❌ Notion configuration not found.")
+    return Client(auth=config.api_key), config.database_id
 
 def add_member_to_notion(profile):
+        notion, NOTION_DB_ID = get_notion_client()
         page = notion.pages.create(
             parent={"database_id": NOTION_DB_ID},
             properties={
@@ -25,7 +33,14 @@ def add_member_to_notion(profile):
         return page["id"]
 
 def delete_member_from_notion(page_id):
+    try:
+        notion, _ = get_notion_client()
+    except Exception as e:
+        print(f"❌ Failed to get Notion client: {e}")
+        return
+
     print(f"Archiving page in Notion: {page_id}")
+
     try:
         if page_id:
             notion.pages.update(
@@ -38,6 +53,12 @@ def delete_member_from_notion(page_id):
 
 
 def update_member_in_notion(profile):
+    try:
+        notion, db_id = get_notion_client()
+    except Exception as e:
+        print("❌ Failed to get Notion client:", e)
+        return
+
     if not profile.notion_page_id:
         print("❌ No Notion Page ID found. Skipping update.")
         return

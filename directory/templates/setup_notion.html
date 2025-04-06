@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4">🔧 Notion Configuration</h2>
+
+  {% if success %}
+  <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+    ✅ Configuration saved successfully! Connected to <strong>{{ notion_name }}</strong> 🎉
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  <script>
+    setTimeout(function () {
+      window.location.href = '/';  // Replace with 'directory/' or your homepage if needed
+    }, 5000);
+  </script>
+  {% endif %}
+
+  <form method="POST" class="card card-body shadow-sm p-4 rounded-4 bg-light">
+    {% csrf_token %}
+
+    <div class="mb-4">
+      <label for="id_api_key" class="form-label fw-semibold">🔑 Notion API Key</label>
+      <input 
+        type="text" 
+        name="api_key" 
+        class="form-control rounded-pill px-3 py-2" 
+        id="id_api_key" 
+        placeholder="Enter your Notion API Key" 
+        value="{{ form.api_key.value|default_if_none:'' }}"
+        required
+      >
+    </div>
+
+    <div class="mb-4">
+      <label for="id_database_id" class="form-label fw-semibold">🗂️ Notion Database ID</label>
+      <input 
+        type="text" 
+        name="database_id" 
+        class="form-control rounded-pill px-3 py-2" 
+        id="id_database_id" 
+        placeholder="Enter your Notion Database ID" 
+        value="{{ form.database_id.value|default_if_none:'' }}"
+        required
+      >
+    </div>
+
+    <div class="text-end">
+      <button type="submit" class="btn btn-dark rounded-pill px-4 py-2 shadow-sm">
+        💾 Save Configuration
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+
+
+
