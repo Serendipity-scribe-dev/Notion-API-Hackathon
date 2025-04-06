@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Community Directory{% endblock %}
+
+{% block content %}
+<h1 class="text-center mb-4">Welcome to the NotionX</h1>
+<p class="text-center lead">Explore profiles or share your own!</p>
+<div class="text-center mt-4">
+  <a href="{% url 'submit_profile' %}" class="btn btn-dark mx-2">Submit Profile</a>
+  <a href="{% url 'directory' %}" class="btn btn-dark mx-2">View Directory</a>
+</div>
+{% endblock %}
+

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4 text-center">Member Directory</h2>
+
+  {% if members %}
+    <div class="row g-4">
+      {% for member in members %}
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm">
+
+            <div class="position-absolute top-0 end-0 m-2 d-flex flex-column align-items-end gap-1">
+              <!-- Edit Button -->
+              <a href="{% url 'edit_profile' member.id %}" class="btn btn-sm btn-light border shadow-sm rounded-circle" title="Edit">
+                <i class="bi bi-pencil"></i>
+              </a>
+            
+              <!-- Delete Button -->
+              <a href="{% url 'delete_profile' member.pk %}" class="btn btn-sm btn-danger shadow-sm rounded-circle"
+                 title="Delete" onclick="return confirm('Are you sure you want to delete this profile?');">
+                <i class="bi bi-trash"></i>
+              </a>
+            </div>
+            
+            <div class="card-body">
+              <h5 class="card-title">{{ member.name }}</h5>
+              <p class="card-text"><strong>Availability:</strong> {{ member.availability }}</p>
+              <p class="card-text"><strong>Skills:</strong> {{ member.skills }}</p>
+              <p class="card-text"><strong>Bio:</strong> {{ member.bio }}</p>
+
+              {% if member.links %}
+              <p class="card-text">
+                <strong>Links:</strong><br>
+                {% for link in member.links.splitlines %}
+                  <a href="{{ link }}" target="_blank" class="d-block small">{{ link }}</a>
+                {% endfor %}
+              </p>
+              {% endif %}
+
+              <p class="text-muted small">Submitted: {{ member.submitted_at|date:"M d, Y H:i" }}</p>
+            </div>
+            <!-- <a href="{% url 'delete_profile' member.pk %}" class="btn btn-sm btn-danger mt-2"
+              onclick="return confirm('Are you sure you want to delete this profile?');">
+              <i class="bi bi-trash"></i> Delete
+            </a>
+            <a href="{% url 'edit_profile' member.id %}" class="btn btn-sm btn-outline-secondary me-2">Edit</a> -->
+
+          </div>
+          
+        
+        </div>
+        
+
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center">
+      <p>No profiles found. Be the first to <a href="{% url 'submit_profile' %}">submit your profile</a>!</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Member Directory</title>
+</head>
+<body>
+    <h2>Community Member Directory</h2>
+    <ul>
+        {% for member in members %}
+            <li>
+                <strong>{{ member.name }}</strong> — {{ member.availability }}<br/>
+                <em>{{ member.bio }}</em><br/>
+                Skills: {{ member.skills }}<br/>
+                {% if member.links %}
+                    <a href="{{ member.links }}" target="_blank">Links</a>
+                {% endif %}
+            </li>
+            <hr/>
+        {% empty %}
+            <li>No members found.</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'submit_profile' %}">Submit a Profile</a>
+</body>
+</html> -->
