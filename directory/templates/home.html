@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Home | Community Directory{% endblock %}
+{% block title %}Home | NotionX{% endblock %}
 
 {% block content %}
 <h1 class="text-center mb-4">Welcome to the NotionX</h1>
@@ -8,7 +8,9 @@
 <div class="text-center mt-4">
   <a href="{% url 'submit_profile' %}" class="btn btn-dark mx-2">Submit Profile</a>
   <a href="{% url 'directory' %}" class="btn btn-dark mx-2">View Directory</a>
-  <a href="{% url 'setup_notion' %}" class="btn btn-dark mx-2">Set Up</a>
+  <a href="{% url 'setup_notion' %}" class="btn btn-outline-primary mx-2">
+    <span class="me-1.5">⚙️</span>Set Up Notion
+  </a>
 </div>
 {% endblock %}
 

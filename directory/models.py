@@ -1,4 +1,5 @@
 from django.db import models
+from django.apps import apps
 
 class MemberProfile(models.Model):
     name = models.CharField(max_length=100)
@@ -20,3 +21,14 @@ class NotionConfig(models.Model):
 
     def __str__(self):
         return "Notion Configuration"
+
+class DynamicProfile(models.Model):
+    data = models.JSONField()  # holds all the dynamic field data
+    notion_page_id = models.CharField(max_length=255, blank=True, null=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.data.get("Name", "Unnamed Profile")
+
+def get_dynamic_model():
+    return apps.get_model('directory', 'DynamicProfile')

@@ -3,44 +3,38 @@
 <div class="container py-5">
   <h2 class="mb-4 text-center">Submit Your Profile</h2>
 
-  <form method="POST" class="row g-4">
+  <form method="POST" class="row g-4 card card-body shadow-sm">
     {% csrf_token %}
 
+    {# Force "name" field to appear first #}
     <div class="col-md-6">
-      <label for="name" class="form-label">Full Name</label>
-      <input type="text" class="form-control" name="name" required>
+      {{ form.name.label_tag }}
+      {{ form.name }}
+      {% if form.name.help_text %}
+        <small class="form-text text-muted">{{ form.name.help_text }}</small>
+      {% endif %}
+      {% if form.name.errors %}
+        <div class="text-danger">{{ form.name.errors }}</div>
+      {% endif %}
     </div>
 
-    <div class="col-md-6">
-      <label for="availability" class="form-label">Availability</label>
-      <select name="availability" class="form-select" required>
-        <option value="">Select availability</option>
-        <option value="full-time">Full-time</option>
-        <option value="part-time">Part-time</option>
-        <option value="contract">Contract</option>
-        <option value="freelance">Freelance</option>
-      </select>
-    </div>
+    {# Loop through the rest of the fields except 'name' #}
+    {% for field in form %}
+      {% if field.name != 'name' %}
+        <div class="col-md-6">
+          {{ field.label_tag }}
+          {{ field }}
+          {% if field.help_text %}
+            <small class="form-text text-muted">{{ field.help_text }}</small>
+          {% endif %}
+          {% if field.errors %}
+            <div class="text-danger">{{ field.errors }}</div>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endfor %}
 
-    <div class="col-12">
-      <label for="bio" class="form-label">Bio</label>
-      <textarea name="bio" rows="4" class="form-control" placeholder="Tell us about yourself..."></textarea>
-    </div>
-
-    <div class="col-12">
-      <label for="skills" class="form-label">Skills (comma-separated)</label>
-      <input type="text" name="skills" class="form-control" placeholder="e.g., React, JavaScript, UI Design">
-    </div>
-
-    <div class="col-md-4">
-        <label for="location" class="form-label">Location</label>
-        <input type="text" name="location" class="form-control" placeholder="">
-      </div>
-
-    <div class="col-md-4">
-      <label for="links" class="form-label">Links</label>
-      <input type="text" name="links" class="form-control" placeholder="https://github.com/username">
-    </div>
+   
 
     <div class="col-12 text-center">
       <button type="submit" class="btn btn-dark px-4">Submit Profile</button>
@@ -48,6 +42,8 @@
   </form>
 </div>
 {% endblock %}
+
+
 
 
 <!-- <!DOCTYPE html>

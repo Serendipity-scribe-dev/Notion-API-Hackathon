@@ -1,18 +1,86 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import MemberProfileForm,NotionConfigForm
-from .models import MemberProfile, NotionConfig
-from .notion import add_member_to_notion, delete_member_from_notion,update_member_in_notion
+from .forms import MemberProfileForm,NotionConfigForm,get_dynamic_profile_form
+from .models import MemberProfile, NotionConfig,DynamicProfile,get_dynamic_model
+from .notion import add_member_to_notion, delete_member_from_notion,update_member_in_notion,fetch_notion_schema, get_notion_client
 from django.utils import timezone
 from django.db.models import Q
 from django.contrib import messages
 from notion_client import Client
+import datetime
 
 
 def home(request):
     return render(request, 'home.html')
     
 def submit_profile(request):
+
+    schema = fetch_notion_schema()
+    DynamicProfileForm = get_dynamic_profile_form(schema)
+
+    # Optional: Set default skills you want for the multi-select
+    #skill_options = ["React", "JavaScript", "Python", "UI Design", "Figma"]
+
     if request.method == 'POST':
+        form = DynamicProfileForm(request.POST)
+        if form.is_valid():
+            profile_data = {}
+            for key, value in form.cleaned_data.items():
+                if isinstance(value, (datetime.date, datetime.datetime)):
+                    profile_data[key] = value.isoformat()  # "YYYY-MM-DD"
+                elif schema[key] == "date" and not value:
+                    # Auto-fill if date is required but not given
+                    profile_data[key] = datetime.date.today().isoformat()
+                else:
+                    profile_data[key] = value
+            profile = DynamicProfile.objects.create(data=profile_data)
+            
+            # Create page in Notion
+            notion, db_id = get_notion_client()
+            properties = {}
+
+            for key, value in profile_data.items():
+                type_ = schema[key]
+                if type_ == "title":
+                    properties[key] = {"title": [{"text": {"content": value}}]}
+                elif type_ == "rich_text":
+                    
+                    properties[key] = {"rich_text": [{"text": {"content": value}}]}
+                elif type_ == "multi_select":
+                    if value:  # Only send if value is not empty
+                        multi_values = [v.strip() for v in value.split(",") if v.strip()]
+                        properties[key] = {
+                        "multi_select": [{"name": v} for v in multi_values]
+                        }
+                elif type_ == "select":
+                    if value:  # Only send if value is not empty
+                        properties[key] = {"select": {"name": value}}
+                elif type_ == "date":
+                    properties[key] = {"date": {"start": str(value)}}
+                elif type_ == "checkbox":
+                    properties[key] = {"checkbox": bool(value)}
+                elif type_ == "url":
+                    if value:
+                        properties[key] = {"url": value}
+                elif type_ == "phone_number":
+                    if value:
+                        properties[key] = {"phone_number": value}
+                elif type_ == "email":
+                    if value:
+                        properties[key] = {"email": value}
+                else:
+                    properties[key] = {"rich_text": [{"text": {"content": value}}]}
+
+            notion_page = notion.pages.create(parent={"database_id": db_id}, properties=properties)
+            profile.notion_page_id = notion_page["id"]
+            profile.save()
+
+            return redirect("directory")  # or success page
+    else:
+        form = DynamicProfileForm()
+
+    return render(request, 'submit_profile.html', {'form': form})
+
+    """ if request.method == 'POST':
         form = MemberProfileForm(request.POST)
         if form.is_valid():
             profile = form.save(commit=False)
@@ -25,10 +93,13 @@ def submit_profile(request):
             return redirect('directory')
     else:
         form = MemberProfileForm()
-    return render(request, 'submit_profile.html', {'form': form})
+    return render(request, 'submit_profile.html', {'form': form}) """
+
+
 
 def delete_profile(request, pk):
-    profile = get_object_or_404(MemberProfile, pk=pk)
+    DynamicProfile = get_dynamic_model()
+    profile = get_object_or_404(DynamicProfile, pk=pk)
 
     # Archive the Notion page if it exists
     if profile.notion_page_id:
@@ -37,6 +108,7 @@ def delete_profile(request, pk):
         except Exception as e:
             print("Failed to archive in Notion:", e)
     profile.delete()
+    messages.success(request, "Profile deleted successfully!")
     return redirect('directory')
 
 def delete_member_from_notion(page_id):
@@ -44,35 +116,85 @@ def delete_member_from_notion(page_id):
     notion.pages.update(page_id=page_id, archived=True)
 
 
+def update_member_in_notion(profile, schema):
+    notion, db_id = get_notion_client()
+    properties = {}
+
+    for key, value in profile.data.items():
+        field_type = schema.get(key)
+
+        if field_type == "title":
+            properties[key] = {"title": [{"text": {"content": value}}]}
+
+        elif field_type == "rich_text":
+            properties[key] = {"rich_text": [{"text": {"content": value}}]}
+
+        elif field_type == "multi_select":
+            if value:
+                properties[key] = {
+                    "multi_select": [{"name": item.strip()} for item in value.split(",") if item.strip()]
+                }
+
+        elif field_type == "select":
+            if value:
+                properties[key] = {"select": {"name": value}}
+
+        elif field_type == "checkbox":
+            properties[key] = {"checkbox": bool(value)}
+
+        elif field_type == "phone_number":
+            properties[key] = {"phone_number": value}
+
+        elif field_type == "url":
+            properties[key] = {"url": value}
+
+        elif field_type == "email":
+            properties[key] = {"email": value}
+
+        elif field_type == "date":
+            if value:
+                properties[key] = {"date": {"start": str(value)}}
+
+        else:
+            properties[key] = {"rich_text": [{"text": {"content": str(value)}}]}
+
+    notion.pages.update(page_id=profile.notion_page_id, properties=properties)
+
+
 def edit_profile(request, id):
-    member = get_object_or_404(MemberProfile, id=id)
-    print("🔍 Original Notion Page ID (from DB):", member.notion_page_id)
+    DynamicProfile = get_dynamic_model()
+    profile = get_object_or_404(DynamicProfile, id=id)
+
+    schema = fetch_notion_schema()
+    DynamicForm = get_dynamic_profile_form(schema)
 
     if request.method == 'POST':
-        form = MemberProfileForm(request.POST, instance=member)
+        form = DynamicForm(request.POST)
         if form.is_valid():
-            updated_member = form.save(commit=False)
+            updated_data = form.cleaned_data
 
-            # Just to be safe
-            if not updated_member.notion_page_id:
-                updated_member.notion_page_id = member.notion_page_id
+            # Save updated data to model
+            for field, value in updated_data.items():
+                if isinstance(value, (datetime.date, datetime.datetime)):
+                    profile.data[field] = value.isoformat()
+                else:
+                    profile.data[field] = value
+            profile.save()
 
-            print("✅ Notion Page ID before save:", updated_member.notion_page_id)
-
-            updated_member.submitted_at = timezone.now()
-            updated_member.save()
-
-            if updated_member.notion_page_id:
-                print("🔄 Updating Notion page:", updated_member.notion_page_id)
-                update_member_in_notion(updated_member)
-            else:
-                print("❌ No Notion Page ID found. Skipping update.")
+            # Update in Notion
+            try:
+                update_member_in_notion(profile, schema)
+                messages.success(request, "Profile updated successfully!")
+            except Exception as e:
+                messages.error(request, f"❌ Failed to update Notion page: {str(e)}")
 
             return redirect('directory')
     else:
-        form = MemberProfileForm(instance=member)
+        form = DynamicForm(initial=profile.data)
 
     return render(request, 'edit_profile.html', {'form': form})
+
+
 
 from django.db.models import Q
 
@@ -80,14 +202,14 @@ def member_directory(request):
     query = request.GET.get('q', '')
     availability = request.GET.get('availability', '')
     skill = request.GET.get('skill', '')
+    profiles = DynamicProfile.objects.all().order_by('-submitted_at')
 
     members = MemberProfile.objects.all().order_by('-submitted_at')
 
     # Filter by name or bio if query exists
     if query:
-        members = members.filter(
-            Q(name__icontains=query) | Q(bio__icontains=query)
-        )
+        members = members.filter(Q(name__icontains=query) | Q(bio__icontains=query))
+        print("Filtered members count:", members.count())  # See if this logs anything
 
     # Filter by availability
     if availability:
@@ -102,6 +224,7 @@ def member_directory(request):
         'search_query': query,
         'selected_availability': availability,
         'selected_skill': skill,
+        'profiles': profiles,
     }
     return render(request, 'member_directory.html', context)
 

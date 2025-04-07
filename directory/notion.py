@@ -1,5 +1,6 @@
 from notion_client import Client
 from .models import NotionConfig
+from collections import OrderedDict
 #import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -53,6 +54,7 @@ def delete_member_from_notion(page_id):
 
 
 def update_member_in_notion(profile):
+    from .notion import fetch_notion_schema
     try:
         notion, db_id = get_notion_client()
     except Exception as e:
@@ -64,23 +66,75 @@ def update_member_in_notion(profile):
         return
 
     try:
+        schema = fetch_notion_schema()
+        properties = {}
+
+        for field_name, field_type in schema.items():
+            value = profile.data.get(field_name)
+
+            if not value:
+                continue
+
+            if field_type == "title":
+                properties[field_name] = {
+                    "title": [{"text": {"content": value}}]
+                }
+            elif field_type == "rich_text":
+                properties[field_name] = {
+                    "rich_text": [{"text": {"content": value}}]
+                }
+            elif field_type == "select":
+                properties[field_name] = {
+                    "select": {"name": value}
+                }
+            elif field_type == "multi_select":
+                properties[field_name] = {
+                    "multi_select": [{"name": s.strip()} for s in value.split(",")]
+                }
+            elif field_type == "date":
+                properties[field_name] = {
+                    "date": {"start": value} if value else None
+                }
+            else:
+                # fallback to rich_text
+                properties[field_name] = {
+                    "rich_text": [{"text": {"content": str(value)}}]
+                }
+
         notion.pages.update(
             page_id=profile.notion_page_id,
-            properties={
-                "Name": {"title": [{"text": {"content": profile.name}}]},
-                "Bio": {"rich_text": [{"text": {"content": profile.bio}}]},
-                "Skills": {
-                    "multi_select": [{"name": skill.strip()} for skill in profile.skills.split(",")]
-                },
-                "Availability": {"select": {"name": profile.availability}},
-                "Location": {"rich_text": [{"text": {"content": profile.location or ""}}]},
-                "Links": {"rich_text": [{"text": {"content": profile.links or ""}}]},
-                "Submitted At": {"date": {"start": profile.submitted_at.isoformat()}}
-            }
+            properties=properties
         )
         print(f"✅ Notion page {profile.notion_page_id} updated successfully.")
     except Exception as e:
         print(f"❌ Failed to update Notion page: {e}")
 
+def fetch_notion_schema():
+    notion, db_id = get_notion_client()
+    response = notion.databases.retrieve(database_id=db_id)
+    properties = response["properties"]
 
-        
+    # Separate out "Name" field
+    name_field = None
+    other_fields = []
+
+    for name, prop in properties.items():
+        if name.lower() == "name":
+            name_field = (name, prop["type"])
+        else:
+            # Some Notion SDKs do not expose created_time — so fallback if missing
+            created = prop.get("created_time")
+            other_fields.append((name, prop["type"], created))
+
+    # Sort by created_time (fallback to alphabetically if not available)
+    other_fields.sort(key=lambda x: x[2] if x[2] else x[0])
+
+    # Build schema dict with "Name" first
+    schema = OrderedDict()
+    if name_field:
+        schema[name_field[0]] = name_field[1]
+
+    for name, field_type, _ in other_fields:
+        schema[name] = field_type
+
+    return schema
