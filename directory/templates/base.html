@@ -28,17 +28,6 @@
 </head>
 <body>
 
-  {% if messages %}
-  <div class="container mt-3">
-    {% for message in messages %}
-      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert" id="autoDismiss">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  </div>
-{% endif %}
-
 <!-- ✅ Navbar -->
 <nav class="navbar navbar-expand-lg bg-body-tertiary shadow-sm">
   <div class="container">
@@ -78,7 +67,9 @@
 </footer>
 
 <!-- ✅ Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
 <script>
   const html = document.documentElement;
   const themeToggle = document.getElementById("themeToggle");
@@ -100,18 +91,16 @@
     themeToggle.classList.toggle("bi-moon-fill");
     themeToggle.classList.toggle("bi-sun-fill");
   });
-</script>
 
-<script>
-  // Auto-dismiss all alerts with class .auto-dismiss after 5 seconds
-  setTimeout(function () {
-    document.querySelectorAll('.auto-dismiss').forEach(function (alert) {
-      const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-      bsAlert.close();
-    });
-  }, 3000);
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.auto-dismiss').forEach(alertEl => {
+        const alert = bootstrap.Alert.getOrCreateInstance(alertEl);
+        alert.close();
+      });
+    }, 5000);
+  });
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-whatever" crossorigin="anonymous"></script>
+</script>
 </body>
 </html>

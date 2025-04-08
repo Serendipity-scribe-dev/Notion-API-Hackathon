@@ -113,24 +113,33 @@ def fetch_notion_schema():
     notion, db_id = get_notion_client()
     response = notion.databases.retrieve(database_id=db_id)
     properties = response["properties"]
+    schema = OrderedDict()
 
     # Separate out "Name" field
     name_field = None
     other_fields = []
 
+    # Ensure "Name" comes first
+    if "Name" in properties:
+        schema["Name"] = properties["Name"]["type"]
+
     for name, prop in properties.items():
-        if name.lower() == "name":
-            name_field = (name, prop["type"])
-        else:
-            # Some Notion SDKs do not expose created_time — so fallback if missing
-            created = prop.get("created_time")
-            other_fields.append((name, prop["type"], created))
+        if name != "Name":
+            schema[name] = prop["type"]
+
+    # for name, prop in properties.items():
+    #     if name.lower() == "name":
+    #         name_field = (name, prop["type"])
+    #     else:
+    #         # Some Notion SDKs do not expose created_time — so fallback if missing
+    #         created = prop.get("created_time")
+    #         other_fields.append((name, prop["type"], created))
 
     # Sort by created_time (fallback to alphabetically if not available)
     other_fields.sort(key=lambda x: x[2] if x[2] else x[0])
 
     # Build schema dict with "Name" first
-    schema = OrderedDict()
+    
     if name_field:
         schema[name_field[0]] = name_field[1]
 
