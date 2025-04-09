@@ -1,4 +1,4 @@
-# 🧠 NotionX — Smart Member Directory with Notion
+# NotionX — Smart Member Directory with Notion
 
 Welcome to **NotionX**, a Django-based web app that allows users to effortlessly **submit, edit, and manage professional profiles**, all while syncing them in real-time to a Notion database using the official Notion API.
 
@@ -82,11 +82,13 @@ Whether you're building a team, organizing a talent pool, or managing contributo
 
 ---
 
-title: 🚀 NotionX Setup Guide
-description: Build dynamic profile submission/editing synced with your Notion database.
-steps:
+# 🚀 NotionX Setup Guide
 
-- step: 🔐 Set up Environment Variables
+Build dynamic profile submission/editing synced with your Notion database.
+
+Usage Steps:
+
+- 🔐 Set up Environment Variables
   details: |
   Create a `.env` file in your root directory and add:
 
@@ -95,7 +97,7 @@ steps:
   NOTION_DB_ID=your-notion-database-id
   ```
 
-- step: 🏗️ Create a Notion Database (Once Only)
+- 🏗️ Create a Notion Database (Once Only)
   details: |
 
   1. Open Notion and create a new **Table database**.
@@ -103,7 +105,7 @@ steps:
   3. Copy the **Database ID** from the URL (after notion.so till the ?)
   4. Paste it into your `.env` as `NOTION_DB_ID`.
 
-- step: 🧠 How Automation Works
+- 🧠 How Automation Works
   details: |
   ✅ Once you've connected your Notion DB and Integration:
 
@@ -117,7 +119,7 @@ steps:
 
   No need to hardcode form fields ever again.
 
-- step: 🔁 Supported Notion Column Types
+- 🔁 Supported Notion Column Types
   list:
 
   - title
@@ -130,7 +132,7 @@ steps:
   - url
   - date
 
-- step: 📦 Run the App
+- 📦 Run the App
   details: |
   ```
   python manage.py runserver
@@ -138,7 +140,7 @@ steps:
 
 ---
 
-### 📺 Demo
+# 📺 Demo
 
 [![Watch the video](https://cdn.loom.com/sessions/thumbnails/632471c078dc47e7acd41f063dc0c12c-dd7f367267937079-full-play.gif)](https://www.loom.com/share/632471c078dc47e7acd41f063dc0c12c)
 
@@ -161,5 +163,3 @@ This project is licensed under the MIT License.
 Made with ❤️ by Serendipity-Scribe
 
 ---
-
-Let me know if you want a `.env.example` file too, or help pushing to GitHub!
