@@ -130,23 +130,19 @@ steps:
   - url
   - date
 
-- step: 🎥 Add a Demo Video
-  details: |
-  You can embed a demo video in your README using Markdown. Upload your video to YouTube or Loom and embed like this:
-
-  ````markdown
-  ### 📺 Demo
-
-  ```markdown
-  [![Watch the video](https://cdn.loom.com/sessions/thumbnails/632471c078dc47e7acd41f063dc0c12c-dd7f367267937079-full-play.gif)](https://www.loom.com/share/632471c078dc47e7acd41f063dc0c12c)
-  ```
-  ````
-
 - step: 📦 Run the App
   details: |
   ```
   python manage.py runserver
   ```
+
+---
+
+```markdown
+### 📺 Demo
+
+[![Watch the video](https://cdn.loom.com/sessions/thumbnails/632471c078dc47e7acd41f063dc0c12c-dd7f367267937079-full-play.gif)](https://www.loom.com/share/632471c078dc47e7acd41f063dc0c12c)
+```
 
 ---
 
