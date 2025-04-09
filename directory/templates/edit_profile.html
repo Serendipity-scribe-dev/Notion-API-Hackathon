@@ -1,27 +1,58 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="container py-5">
   <h2 class="mb-4 text-center">Edit Your Profile</h2>
 
-  <form method="POST" class="row g-4">
+  <form method="POST" class="row g-4 card card-body shadow-sm">
     {% csrf_token %}
 
     {% for field in form %}
-      <div class="col-md-6">
-        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-        {{ field }}
-        {% if field.help_text %}
-          <div class="form-text">{{ field.help_text }}</div>
-        {% endif %}
-        {% if field.errors %}
-          <div class="text-danger small">{{ field.errors }}</div>
-        {% endif %}
-      </div>
+      {% if field.field.widget.widget_type == "multi_select" %}
+        <div class="col-12">
+          <label class="form-label"><strong>{{ field.label }}:</strong></label>
+          <div class="d-flex flex-wrap gap-3">
+            {% for checkbox in field %}
+              <div class="form-check">
+                {{ checkbox.tag }}
+                <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                  {{ checkbox.choice_label }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="col-md-6">
+          <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}
+            <small class="form-text text-muted">{{ field.help_text }}</small>
+          {% endif %}
+          {% if field.errors %}
+            <div class="text-danger small">{{ field.errors }}</div>
+          {% endif %}
+        </div>
+      {% endif %}
     {% endfor %}
 
     <div class="col-12 text-center mt-4">
-      <button type="submit" class="btn btn-primary px-4">💾 Update Profile</button>
+      <button type="submit" class="btn btn-dark px-4">💾 Update Profile</button>
     </div>
   </form>
 </div>
 {% endblock %}
+
+<style>
+  .form-check-input {
+    margin-right: 8px;
+  }
+
+  .form-check {
+    margin-bottom: 10px;
+  }
+
+  label {
+    font-weight: 500;
+  }
+</style>

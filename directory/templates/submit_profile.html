@@ -6,21 +6,25 @@
   <form method="POST" class="row g-4 card card-body shadow-sm">
     {% csrf_token %}
 
-    {# Force "name" field to appear first #}
-    <div class="col-md-6">
-      {{ form.name.label_tag }}
-      {{ form.name }}
-      {% if form.name.help_text %}
-        <small class="form-text text-muted">{{ form.name.help_text }}</small>
-      {% endif %}
-      {% if form.name.errors %}
-        <div class="text-danger">{{ form.name.errors }}</div>
-      {% endif %}
-    </div>
-
-    {# Loop through the rest of the fields except 'name' #}
     {% for field in form %}
-      {% if field.name != 'name' %}
+    {% if field.field.widget.widget_type == "multi_select" %}
+
+        <!-- 🧩 Render Multi-Select Checkboxes in Full Width -->
+        <div class="col-12">
+          <label class="form-label"><strong>{{ field.label }}:</strong></label>
+          <div class="checkbox-grid">
+            {% for checkbox in field %}
+              <div class="form-check">
+                {{ checkbox.tag }}
+                <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                  {{ checkbox.choice_label }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <!-- 🧩 Regular Field in Two Column Layout -->
         <div class="col-md-6">
           {{ field.label_tag }}
           {{ field }}
@@ -34,8 +38,6 @@
       {% endif %}
     {% endfor %}
 
-   
-
     <div class="col-12 text-center">
       <button type="submit" class="btn btn-dark px-4">Submit Profile</button>
     </div>
@@ -43,22 +45,40 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+  .form-check {
+    margin-bottom: 12px;
+    margin-right: 20px;
+    min-width: 150px;
+  }
 
+  .form-check-input {
+    margin-right: 8px;
+    cursor: pointer;
+  }
 
+  .form-check-label {
+    cursor: pointer;
+  }
 
-<!-- <!DOCTYPE html>
-<html>
-<head>
-    <title>Submit Your Profile</title>
-</head>
-<body>
-    <h2>Submit Your Profile</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Submit</button>
-    </form>
-    <a href="{% url 'directory' %}">View Directory</a>
-</body>
-</html> -->
+  .checkbox-grid {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 15px;
+    background: #f9f9f9;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    gap: 10px;
+  }
 
+  label {
+    font-weight: 500;
+  }
+
+  .form-control,
+  .form-select {
+    min-height: 42px;
+  }
+</style>
+{% endblock %}

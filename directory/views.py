@@ -15,6 +15,7 @@ def home(request):
 def submit_profile(request):
 
     schema = fetch_notion_schema()
+    print("DEBUG: Schema:", schema) 
     DynamicProfileForm = get_dynamic_profile_form(schema)
 
     # Optional: Set default skills you want for the multi-select
@@ -23,6 +24,8 @@ def submit_profile(request):
     if request.method == 'POST':
         form = DynamicProfileForm(request.POST)
         if form.is_valid():
+            print("DEBUG: form.cleaned_data:", form.cleaned_data) # Add this line
+
             profile_data = {}
             for key, value in form.cleaned_data.items():
                 if isinstance(value, (datetime.date, datetime.datetime)):
@@ -39,17 +42,18 @@ def submit_profile(request):
             properties = {}
 
             for key, value in profile_data.items():
-                type_ = schema[key]
+                type_ = schema[key]['type']
+                print(f"DEBUG: Processing key: {key}, type: {type_}, value: {value}") # Debugging line
                 if type_ == "title":
                     properties[key] = {"title": [{"text": {"content": value}}]}
                 elif type_ == "rich_text":
                     
                     properties[key] = {"rich_text": [{"text": {"content": value}}]}
                 elif type_ == "multi_select":
+                    print(f"DEBUG: Formatting '{key}' as multi_select with value: {value}") # Debugging line
                     if value:  # Only send if value is not empty
-                        multi_values = [v.strip() for v in value.split(",") if v.strip()]
                         properties[key] = {
-                        "multi_select": [{"name": v} for v in multi_values]
+                            "multi_select": [{"name": v} for v in value]
                         }
                 elif type_ == "select":
                     if value:  # Only send if value is not empty
@@ -68,6 +72,7 @@ def submit_profile(request):
                     if value:
                         properties[key] = {"email": value}
                 else:
+                    print(f"DEBUG: Formatting '{key}' as rich_text due to unknown type or fallback") # Debugging line
                     properties[key] = {"rich_text": [{"text": {"content": value}}]}
 
             notion_page = notion.pages.create(parent={"database_id": db_id}, properties=properties)
@@ -117,11 +122,15 @@ def delete_member_from_notion(page_id):
 
 
 def update_member_in_notion(profile, schema):
+    print("DEBUG (Update): Schema:", schema) # Add this line
     notion, db_id = get_notion_client()
+    print("DEBUG (Update): profile.data:", profile.data) # Add this line
     properties = {}
 
     for key, value in profile.data.items():
-        field_type = schema.get(key)
+        field_info = schema.get(key, {})
+        field_type = schema.get(key,{}).get ('type')
+        print(f"DEBUG (Update - Loop): key: {key}, field_info: {field_info}, field_type: {field_type}, value: {value}") # Add this line
 
         if field_type == "title":
             properties[key] = {"title": [{"text": {"content": value}}]}
@@ -132,7 +141,7 @@ def update_member_in_notion(profile, schema):
         elif field_type == "multi_select":
             if value:
                 properties[key] = {
-                    "multi_select": [{"name": item.strip()} for item in value.split(",") if item.strip()]
+                    "multi_select": [{"name": item} for item in value]
                 }
 
         elif field_type == "select":
@@ -156,10 +165,13 @@ def update_member_in_notion(profile, schema):
                 properties[key] = {"date": {"start": str(value)}}
 
         else:
-            properties[key] = {"rich_text": [{"text": {"content": str(value)}}]}
-
-    notion.pages.update(page_id=profile.notion_page_id, properties=properties)
-
+           properties[key] = {"rich_text": [{"text": {"content": str(value)}}]}
+    print("DEBUG (Update): properties:", properties) # Add this line       
+    try:
+        notion.pages.update(page_id=profile.notion_page_id, properties=properties)
+    except Exception as e:
+        print(f"Error updating Notion page: {e}")
+        raise # Re-raise the exception to be caught in edit_profile
 
 def edit_profile(request, id):
     DynamicProfile = get_dynamic_model()
@@ -174,11 +186,7 @@ def edit_profile(request, id):
             updated_data = form.cleaned_data
 
             # Save updated data to model
-            for field, value in updated_data.items():
-                if isinstance(value, (datetime.date, datetime.datetime)):
-                    profile.data[field] = value.isoformat()
-                else:
-                    profile.data[field] = value
+            profile.data.update(updated_data) # Use update for dictionaries
             profile.save()
 
             # Update in Notion
@@ -218,6 +226,16 @@ def member_directory(request):
     # Filter by skill (checking if skill is a substring in the comma-separated skills field)
     if skill:
         members = members.filter(skills__icontains=skill)
+
+    # 🧼 Clean multi-select list values
+    for profile in profiles:
+        cleaned_data = {}
+        for key, value in profile.data.items():
+            if isinstance(value, list):
+                cleaned_data[key] = ", ".join(str(v) for v in value)
+            else:
+                cleaned_data[key] = value
+        profile.cleaned_data = cleaned_data
 
     context = {
         'members': members,

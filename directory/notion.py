@@ -115,35 +115,38 @@ def fetch_notion_schema():
     properties = response["properties"]
     schema = OrderedDict()
 
-    # Separate out "Name" field
     name_field = None
     other_fields = []
 
-    # Ensure "Name" comes first
-    if "Name" in properties:
-        schema["Name"] = properties["Name"]["type"]
-
     for name, prop in properties.items():
-        if name != "Name":
-            schema[name] = prop["type"]
+        field_type = prop["type"]
+        field_info = {"type": field_type}
 
-    # for name, prop in properties.items():
-    #     if name.lower() == "name":
-    #         name_field = (name, prop["type"])
-    #     else:
-    #         # Some Notion SDKs do not expose created_time — so fallback if missing
-    #         created = prop.get("created_time")
-    #         other_fields.append((name, prop["type"], created))
+        # ✅ Capture select & multiselect options
+        if field_type in ["select", "multi_select"]:
+            field_info["options"] = [opt["name"] for opt in prop[field_type].get("options", [])]
 
-    # Sort by created_time (fallback to alphabetically if not available)
+        created_time = prop.get("created_time")
+
+        if name.lower() == "name":
+            name_field = (name, field_info, created_time)
+        else:
+            other_fields.append((name, field_info, created_time))
+
+    # ✅ Sort by creation time (fallback: name)
     other_fields.sort(key=lambda x: x[2] if x[2] else x[0])
 
-    # Build schema dict with "Name" first
-    
+    # ✅ Add Name first if available
     if name_field:
         schema[name_field[0]] = name_field[1]
 
-    for name, field_type, _ in other_fields:
-        schema[name] = field_type
+    # ✅ Add the rest
+    for name, field_info, _ in other_fields:
+        schema[name] = field_info
+
+    # ✅ Debug print
+    print("\n📦 FINAL SCHEMA:")
+    for key, val in schema.items():
+        print(f"{key}: {val}")
 
     return schema
