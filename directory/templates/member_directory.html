@@ -18,12 +18,12 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
   crossorigin="anonymous"></script>
 
-  <!-- <form method="get" class="row g-2 mb-4">
+  <form method="get" class="row g-2 mb-4">
     <div class="col-md-4">
-      <input type="text" name="q" class="form-control" placeholder="Search by name" value="{{ search_query }}">
+      <input type="text" name="q" class="form-control" placeholder="Filter by Name" value="{{ search_query }}">
 
     </div>
-    <div class="col-md-3">
+    <!-- <div class="col-md-3">
       <select name="availability" class="form-select">
         <option value="">All Availability</option>
         <option value="full-time" {% if selected_availability == 'full-time' %}selected{% endif %}>Full-time</option>
@@ -31,14 +31,14 @@
         <option value="contract" {% if selected_availability == 'contract' %}selected{% endif %}>Contract</option>
         <option value="freelance" {% if selected_availability == 'freelance' %}selected{% endif %}>Freelance</option>
       </select>
-    </div>
-    <div class="col-md-3">
+    </div> -->
+    <!-- <div class="col-md-3">
       <input type="text" name="skill" class="form-control" placeholder="Search by skill" value="{{ selected_skill }}">
-    </div>
+    </div> -->
     <div class="col-md-2">
       <button type="submit" class="btn btn-dark w-100">Search</button>
     </div>
-  </form> -->
+  </form>
 
   {% if profiles %}
     <div class="row g-4">

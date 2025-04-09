@@ -82,45 +82,71 @@ Whether you're building a team, organizing a talent pool, or managing contributo
 
 ---
 
-# 🔐 Environment Variables (.env)
+title: 🚀 NotionX Setup Guide
+description: Build dynamic profile submission/editing synced with your Notion database.
+steps:
 
-Make sure to set the following in a .env file:
+- step: 🔐 Set up Environment Variables
+  details: |
+  Create a `.env` file in your root directory and add:
 
-NOTION_API_KEY=your-secret-notion-api-key
+  ```env
+  NOTION_API_KEY=your-secret-notion-api-key
+  NOTION_DB_ID=your-notion-database-id
+  ```
 
-NOTION_DB_ID=your-notion-database-id
+- step: 🏗️ Create a Notion Database (Once Only)
+  details: |
 
----
+  1. Open Notion and create a new **Table database**.
+  2. Click `Share` → `Connections` → Add the integration you created at [Notion Integrations](https://www.notion.so/my-integrations).
+  3. Copy the **Database ID** from the URL (after notion.so till the ?)
+  4. Paste it into your `.env` as `NOTION_DB_ID`.
 
-# ⚙️ Automating the Notion Database
+- step: 🧠 How Automation Works
+  details: |
+  ✅ Once you've connected your Notion DB and Integration:
 
-Can this app automatically create a Notion database with columns?
+  - As soon as you start **adding new columns** in your Notion database (e.g., `Email`, `Portfolio`, `Phone Number`), they will **automatically appear** in your form.
+  - The field types (like `title`, `text`, `multi_select`, `select`, `checkbox`, `email`, etc.) are **auto-detected** and rendered dynamically in the form.
+  - Any `select` or `multi_select` options defined in Notion are turned into proper dropdowns / checkbox lists for input.
+  - The app is smart enough to:
+    - 📝 Submit data to Notion
+    - ✏️ Edit data (also synced back to Notion)
+    - 🗑️ Delete entries (archives them in Notion)
 
-No, this app assumes the database already exists in your Notion workspace. You'll need to:
+  No need to hardcode form fields ever again.
 
-1.Manually create a Notion database.
+- step: 🔁 Supported Notion Column Types
+  list:
 
-2.Add these columns (Field , Type):
+  - title
+  - rich_text
+  - multi_select
+  - select
+  - checkbox
+  - phone_number
+  - email
+  - url
+  - date
 
-- Name (title)
+- step: 🎥 Add a Demo Video
+  details: |
+  You can embed a demo video in your README using Markdown. Upload your video to YouTube or Loom and embed like this:
 
-- Bio (text)
+  ````markdown
+  ### 📺 Demo
 
-- Skills (multi-select)
+  ```markdown
+  [![Watch the video](https://cdn.loom.com/sessions/thumbnails/632471c078dc47e7acd41f063dc0c12c-dd7f367267937079-full-play.gif)](https://www.loom.com/share/632471c078dc47e7acd41f063dc0c12c)
+  ```
+  ````
 
-- Availability (select)
-
-- Location (text)
-
-- Links (text)
-
-- Submitted At (date)
-
-  3.Go to https://www.notion.so/my-integrations, create a new interation, copy the **Internal Integration Secret** & paste in .env as NOTION_API_KEY.
-
-  4.Come to your Notion Database, go to options and select connections. Add your integration as Connections.
-
-  5.Copy the Database ID from the URL (💡The part right after notion.so/ and before the ? is the Database ID) and paste it in your .env as NOTION_DB_ID.
+- step: 📦 Run the App
+  details: |
+  ```
+  python manage.py runserver
+  ```
 
 ---
 

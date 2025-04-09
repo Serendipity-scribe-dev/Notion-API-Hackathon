@@ -185,6 +185,13 @@ def edit_profile(request, id):
         if form.is_valid():
             updated_data = form.cleaned_data
 
+            # Serialize any date/datetime values
+            for key, value in form.cleaned_data.items():
+                if isinstance(value, (datetime.date, datetime.datetime)):
+                    updated_data[key] = value.isoformat()
+                else:
+                    updated_data[key] = value
+
             # Save updated data to model
             profile.data.update(updated_data) # Use update for dictionaries
             profile.save()
@@ -211,14 +218,21 @@ def member_directory(request):
     availability = request.GET.get('availability', '')
     skill = request.GET.get('skill', '')
     profiles = DynamicProfile.objects.all().order_by('-submitted_at')
-
     members = MemberProfile.objects.all().order_by('-submitted_at')
+    search_query = request.GET.get('q')
 
     # Filter by name or bio if query exists
-    if query:
-        members = members.filter(Q(name__icontains=query) | Q(bio__icontains=query))
-        print("Filtered members count:", members.count())  # See if this logs anything
-
+    # if query:
+    #     members = members.filter(Q(name__icontains=query) | Q(bio__icontains=query))
+    #     print("Filtered members count:", members.count())  # See if this logs anything
+    if search_query:
+        # Search for the query within the string representation of the 'data' field
+        profiles = profiles.filter(
+            Q(data__icontains=f'"Name": "{search_query}"') |
+            Q(data__icontains=f'"Name": "{search_query.lower()}"') |
+            Q(data__icontains=f'"Name": "{search_query.upper()}"') |
+            Q(data__icontains=f'"Name": "{search_query.capitalize()}"')
+        )
     # Filter by availability
     if availability:
         members = members.filter(availability__iexact=availability)
