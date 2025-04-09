@@ -59,7 +59,12 @@ def submit_profile(request):
                     if value:  # Only send if value is not empty
                         properties[key] = {"select": {"name": value}}
                 elif type_ == "date":
-                    properties[key] = {"date": {"start": str(value)}}
+                    safe_date = value if value else datetime.date.today()
+                    properties[key] = {
+                        "date": {
+                            "start": safe_date.isoformat()
+                        }
+                    }
                 elif type_ == "checkbox":
                     properties[key] = {"checkbox": bool(value)}
                 elif type_ == "url":
@@ -161,8 +166,12 @@ def update_member_in_notion(profile, schema):
             properties[key] = {"email": value}
 
         elif field_type == "date":
-            if value:
-                properties[key] = {"date": {"start": str(value)}}
+            safe_date = value if value else datetime.date.today()
+            properties[key] = {
+                "date": {
+                    "start": safe_date.isoformat()
+                }
+            }
 
         else:
            properties[key] = {"rich_text": [{"text": {"content": str(value)}}]}
